@@ -1,10 +1,11 @@
 import nextcord
 from nextcord import *
 from nextcord.ext.commands import Cog
-from nextcord.ui import View, Button
-from nextcord import  SelectMenu, SelectOption
+from nextcord.ui import View, Button, Select
+from nextcord import SelectMenu, SelectOption
 
 import conts
+
 
 class TicketSystem(Cog):
     def __init__(self, bot):
@@ -36,53 +37,58 @@ class TicketSystem(Cog):
         channel = self.bot.get_channel(conts.CHANNEL_TICKET)
         await channel.purge()
         embed = Embed(
-            title="Здесь Вы можете оставить жалобу на другого пользователя.",
-            description="Чтобы создать обращение, нажмите на кнопку под сообщением.\nНапоминаю о пунктах 5.1-5.8 Правил ( <#1211519023456587777> )",
+            title="Здесь ты можешь оставить жалобу на другого пользователя.",
+            description="Чтобы создать обращение, нажми на кнопку под сообщением.\nНапоминаю о пунктах 5.1-5.8 Правил ( <#1211519023456587777> )",
             colour=Colour.random()
         )
         view = View()
-        button_create = Button(style=ButtonStyle.green, label=' Создать тикет', custom_id='create_ticket')
+        view.timeout = None
+        button_create = Button(style=ButtonStyle.green, label='Создать тикет', custom_id='create_ticket')
 
         async def function_on_click(interaction: nextcord.Interaction):
             ticket_channel = await self.create_ticket_channel(interaction.user)
             if ticket_channel:
                 view = View()
+                view.timeout = None
                 delete_button = Button(style=ButtonStyle.red, label="Удалить тикет", custom_id="delete_ticket")
                 punish_button = Button(style=ButtonStyle.red, label="Наказать", custom_id="punish_ticket")
 
                 async def delete_ticket_callback(interaction: nextcord.Interaction):
                     await interaction.channel.delete()
 
+                async def punish_callback(interaction: nextcord.Interaction):
+                    if interaction.user.get_role(conts.ROLE_STAFF):
+                        punish_menu = Select()
+                        options = [SelectOption(label="Забанить", description="Заблокировать на сервере", value=1),
+                                   SelectOption(label="Отправить в тайм-аут", description="Отправить в мут, в том числе голосовой", value=2),
+                                   SelectOption(label="Предупредить", description="Отправить сообщение в личку пользователю", value=3)]
+                        punish_menu.options = options
+                        punish_view = View()
+                        punish_view.timeout = None
+                        punish_view.add_item(punish_menu)
+                        await interaction.send("Ничего не работает. Пользуйтесь `/ban` `/timeout` `/личка`", ephemeral=True, view=punish_view)
+                    else:
+                        await interaction.send(
+                            f"Ай-яй-яй, ты не {interaction.guild.get_role(conts.ROLE_STAFF).mention}", ephemeral=True)
+
                 delete_button.callback = delete_ticket_callback
+                punish_button.callback = punish_callback
                 view.add_item(delete_button)
                 view.add_item(punish_button)
-                await ticket_channel.send(f"{interaction.user.mention}, Ваш тикет создан!", view=view)
+                await ticket_channel.send(f"{interaction.user.mention}, твой тикет создан!\n"
+                                          f"Заполните обращение по форме:```css\n"
+                                          f"1. Суть обращения\n"
+                                          f"2. Доказательства нарушения\n"
+                                          f"3. Дата нарушения (если требуется).```", view=view)
             else:
                 await interaction.response.send_message("Произошла ошибка при создании тикета.", ephemeral=True)
 
-        async def punish_callback(interaction: nextcord.Interaction):
-            punishments = [
-                SelectOption(label="Тайм-аут", value="timeout"),
-                SelectOption(label="Бан", value="ban"),
-                SelectOption(label="Предупреждение", value="warning")
-            ]
-            select = SelectMenu(custom_id="punish_select", placeholder="Выберите наказание", options=punishments)
-            await interaction.response.send_message("Выберите способ наказания:", view=select)
-
-        async def on_button_click(self, interaction: Interaction):
-            if interaction.custom_id == "delete_ticket":
-                await interaction.channel.delete()
-            elif interaction.custom_id == "punish_ticket":
-                # Проверяем, есть ли у пользователя роль "staff"
-                staff_role = nextcord.utils.get(interaction.guild.roles, name='staff')
-                if staff_role in interaction.user.roles:
-                    await punish_callback(interaction)
-                else:
-                    await interaction.response.send_message("У вас нет прав на наказание пользователей.", ephemeral=True)
-
         button_create.callback = function_on_click
+        view.timeout = None
+
         view.add_item(button_create)
         await channel.send(embed=embed, view=view)
+
 
 def setup(bot):
     bot.add_cog(TicketSystem(bot))

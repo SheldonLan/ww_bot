@@ -2,12 +2,12 @@ import os
 
 import nextcord
 from nextcord import *
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 import secret, conts
 import random
 
 bot = commands.Bot(command_prefix='!@', intents=nextcord.Intents.all(),
-                   activity=Activity(type=ActivityType.watching, name="как за обиженными воду возят."))
+                   activity=nextcord.Activity(type=nextcord.ActivityType.watching, name="как папа любит маму"))
 
 for file in os.listdir("./cogs"):
     if file.endswith(".py"):
@@ -38,20 +38,5 @@ async def on_member_join(member: Member):
 
     await bot.get_channel(conts.WELCOME_CHANNEL).send(embed=embed)
 
-@bot.command()
-async def help_command(self, ctx):
-        all_commands = []
-
-        for cog_name, cog in self.bot.cogs.items():
-            commands_list = cog.get_commands()
-            if commands_list:
-                commands_str = [f"{cmd.name}: {cmd.help}" for cmd in commands_list]
-                all_commands.extend(commands_str)
-
-        if all_commands:
-            await ctx.send("Список доступных команд:")
-            await ctx.send("\n".join(all_commands))
-        else:
-            await ctx.send("Нет доступных команд.")
 
 bot.run(secret.TOKEN)

@@ -11,6 +11,9 @@ ROLES_CHANNEL = 1212130713827147806
 CHANNEL_TICKET = 1212290408277745675
 # Роли
 ROLE_VERIFICATED = 1211888761747673180
+ROLE_STAFF = 1211922098335916042
+
+# Иное
 WELCOME_GIF_URLS = ["https://media1.tenor.com/m/Jg97R-CQJhoAAAAC/ww-wuthering-waves.gif",
                     "https://media1.tenor.com/m/NSjCcZIMjnMAAAAC/wutheringdaily-yangyang.gif",
                     "https://media1.tenor.com/m/KGdLlW2G3QkAAAAd/danjin-wuthering-waves.gif",

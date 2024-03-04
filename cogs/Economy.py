@@ -1,6 +1,6 @@
 import mysql.connector
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, application_checks
 from datetime import datetime, timedelta
 
 import conts
@@ -10,8 +10,13 @@ class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Начать экономику")
-    async def начать_экономику(self, interaction: nextcord.Interaction):
+
+    @nextcord.slash_command(guild_ids=[conts.GUILD], description="Экономика")
+    async def экономика(self, interaction: nextcord.Interaction):
+        pass
+
+    @экономика.subcommand(description="Начать экономику")
+    async def начать(self, interaction: nextcord.Interaction):
         user_id = None
         try:
             connection = mysql.connector.connect(
@@ -31,7 +36,7 @@ class Economy(commands.Cog):
                 # Если пользователь уже существует, отправляем ему сообщение с его уникальным id
                 user_id = result[0]
                 await interaction.response.send_message(
-                    content=f"Вы уже начали экономику. Ваш уникальный номер: {user_id}",
+                    content=f"Ты  начал экономику. Ваш уникальный номер: {user_id}",
                     ephemeral=True
                 )
             else:
@@ -58,7 +63,7 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Проверить баланс")
+    @экономика.subcommand(description="Проверить баланс")
     async def проверить_баланс(self, interaction: nextcord.Interaction):
         balance = None
         try:
@@ -89,11 +94,11 @@ class Economy(commands.Cog):
             )
         else:
             await interaction.response.send_message(
-                content="Вы еще не начали экономику. Используйте /начать_экономику",
+                content="Ты еще не начал экономику. Используйте /начать_экономику",
                 ephemeral=True
             )
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Получить ежечасное вознаграждение")
+    @экономика.subcommand(description="Получить ежечасное вознаграждение")
     async def ежечасное_вознаграждение(self, interaction: nextcord.Interaction):
         try:
             connection = mysql.connector.connect(
@@ -114,7 +119,7 @@ class Economy(commands.Cog):
             if not result:
                 # Если пользователь отсутствует в таблице transactions, отправляем ему сообщение с просьбой начать экономику
                 await interaction.response.send_message(
-                    content="Вы еще не начали экономику. Используйте /начать_экономику",
+                    content="Ты еще не начал экономику. Используйте /начать_экономику",
                     ephemeral=True
                 )
                 return
@@ -129,7 +134,7 @@ class Economy(commands.Cog):
                 if cooldown_time > timedelta(0):
                     formatted_cooldown_time = f"<t:{int((now + cooldown_time).timestamp())}:R>"
                     await interaction.response.send_message(
-                        content=f"Вы уже получали ежечасное вознаграждение в этот час.\nОсталось ожидать: {formatted_cooldown_time}",
+                        content=f"Ты уже получал ежечасное вознаграждение в этот час.\nОсталось ожидать: {formatted_cooldown_time}",
                         ephemeral=True
                     )
                     return
@@ -140,7 +145,7 @@ class Economy(commands.Cog):
                 cursor.execute(sql_update_balance)
                 connection.commit()
                 await interaction.response.send_message(
-                    content="Вы получили ежечасное вознаграждение в размере 10 монет",
+                    content="Ты получил ежечасное вознаграждение в размере 10 монет",
                     ephemeral=True
                 )
         except Exception as e:
@@ -150,7 +155,7 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Получить список товаров")
+    @экономика.subcommand(description="Получить список товаров")
     async def список_товаров(self, interaction: nextcord.Interaction):
         try:
             connection = mysql.connector.connect(
@@ -171,7 +176,7 @@ class Economy(commands.Cog):
                     embed.add_field(name=f"{product[0]}. {product[1]}", value=f"Стоимость: {product[2]} монет",
                                     inline=False)
             else:
-                embed = nextcord.Embed(title="Магазин", description="[ЭКОНОМИКА] В магазине пока нет товаров.",
+                embed = nextcord.Embed(title="Магазин", description="В магазине пока нет товаров.",
                                        color=0xff0000)
 
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -182,7 +187,7 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Купить товар")
+    @экономика.subcommand(description="Купить товар")
     async def купить_товар(self, interaction: nextcord.Interaction, product_id: int):
         user_id = interaction.user.id
         try:
@@ -201,7 +206,7 @@ class Economy(commands.Cog):
             user = cursor.fetchone()
             if not user:
                 await interaction.response.send_message(
-                    content="Вы еще не начали экономику. Используйте /начать_экономику",
+                    content="Ты еще не начал экономику. Используйте /начать_экономику",
                     ephemeral=True
                 )
                 return
@@ -259,7 +264,7 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Топ пользователей по балансу")
+    @экономика.subcommand(description="Топ пользователей по балансу")
     async def топ(self, interaction: nextcord.Interaction):
         try:
             connection = mysql.connector.connect(
@@ -287,7 +292,8 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Добавить товар")
+    @экономика.subcommand(description="Добавить товар")
+    @application_checks.has_any_role('staff', 1211514715679752202)
     async def добавить_товар(self, interaction: nextcord.Interaction, name: str, price: int):
         try:
             connection = mysql.connector.connect(
@@ -310,7 +316,8 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Удалить товар")
+    @экономика.subcommand(description="Удалить товар")
+    @application_checks.has_any_role('staff', 1211514715679752202)
     async def удалить_товар(self, interaction: nextcord.Interaction, product_id: int):
         try:
             connection = mysql.connector.connect(
@@ -333,7 +340,8 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Изменить цену товара")
+    @экономика.subcommand(description="Изменить цену товара")
+    @application_checks.has_any_role('staff', 1211514715679752202)
     async def изменить_цену(self, interaction: nextcord.Interaction, product_id: int, price: int):
         try:
             connection = mysql.connector.connect(
@@ -356,8 +364,9 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Добавить роль к товару")
-    async def привязать_роль_к_товару(self, interaction: nextcord.Interaction, product_id: int, role_id: int):
+    @экономика.subcommand(description="Добавить роль к товару")
+    @application_checks.has_any_role('staff', 1211514715679752202)
+    async def привязать_роль(self, interaction: nextcord.Interaction, product_id: int, role_id: int):
         try:
             connection = mysql.connector.connect(
                 host="127.0.0.1",
@@ -379,7 +388,8 @@ class Economy(commands.Cog):
                 cursor.close()
                 connection.close()
 
-    @nextcord.slash_command(guild_ids=[conts.GUILD], description="[ЭКОНОМИКА] Добавить баланс пользователю")
+    @экономика.subcommand(description="Добавить баланс пользователю")
+    @application_checks.has_any_role('staff', 1211514715679752202)
     async def добавить_баланс(self, interaction: nextcord.Interaction, user: nextcord.Member, amount: int):
         try:
             connection = mysql.connector.connect(

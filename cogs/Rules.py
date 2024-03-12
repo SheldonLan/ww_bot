@@ -68,26 +68,26 @@ class Rules(Cog):
                                    "📝**5.7.** К видеозаписям продолжительностью более 2-х минут обязательно прикреплять таймкоды с нарушениями.\n"
                                    "***Пояснение:*** Таймкод - навигация по видео с указанием: времени в формате ММ:СС и текста, описывающего зафиксированные в этот момент нарушения.\n"
                                    "📝**5.8.** Жалобы без доказательной базы будут отклонены ввиду отсутствия доказательств.\n")
-        file = nextcord.File("C:\\Users\\RTA-Telecom\\Downloads\\image.png")
-        some_button = nextcord.ui.Button(label="Прочитано!", style=ButtonStyle.green, custom_id="accept_button")
-        view = nextcord.ui.View()
-        view.timeout=None
-        view.add_item(some_button)
+        file = nextcord.File("C:\\Users\\RTA-Telecom\\Downloads\\2.png")
+        # some_button = nextcord.ui.Button(label="Прочитано!", style=ButtonStyle.green, custom_id="accept_button")
+        # view = nextcord.ui.View()
+        # view.timeout=None
+        # view.add_item(some_button)
 
-        async def function_on_click(interaction: nextcord.Interaction):
-            guild = bot.get_guild(conts.GUILD)
-            role = guild.get_role(conts.ROLE_VERIFICATED)
-            user = await guild.fetch_member(interaction.user.id)
+        # async def function_on_click(interaction: nextcord.Interaction):
+        #     guild = bot.get_guild(conts.GUILD)
+        #     role = guild.get_role(conts.ROLE_VERIFICATED)
+        #     user = await guild.fetch_member(interaction.user.id)
+        #
+        #     if role in user.roles:
+        #         await interaction.send(ephemeral=True, content="У тебя уже есть роль верификации.")
+        #     else:
+        #         await user.add_roles(role)
+        #         await interaction.send(ephemeral=True, content="Ты успешно верифицированы! Хорошего времяпровождения!")
 
-            if role in user.roles:
-                await interaction.send(ephemeral=True, content="У тебя уже есть роль верификации.")
-            else:
-                await user.add_roles(role)
-                await interaction.send(ephemeral=True, content="Ты успешно верифицированы! Хорошего времяпровождения!")
-
-        some_button.callback = function_on_click
+        # some_button.callback = function_on_click
         await channel.send(file=file, embeds=[embed1, embed2])
-        await channel.send(embeds=[embed3, embed4, embed5], view=view)
+        await channel.send(embeds=[embed3, embed4, embed5]) #, view=view
 
 def setup(bot):
     bot.add_cog(Rules(bot))

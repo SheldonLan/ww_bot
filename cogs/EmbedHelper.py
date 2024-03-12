@@ -26,7 +26,7 @@ class EmbedHelper(commands.Cog):
 
         else:
             embed.set_author(name=f"An'ke", icon_url=bot.get_guild(conts.GUILD).icon.url)
-            embed.set_footer(text="WWB's staff")
+            embed.set_footer(text="WWC's staff")
             embed.description = f"Привет, мой милый друг!\n{описание}"
             embed.title=f"An'ke {делает} {заголовок}!"
             await channel.send(embed=embed)
@@ -36,7 +36,7 @@ class EmbedHelper(commands.Cog):
         msg = bot.get_channel(int(id_канала)).get_partial_message(int(id_сообщения))
         embed = Embed()
         embed.set_author(name=f"An'ke", icon_url=bot.get_guild(conts.GUILD).icon.url)
-        embed.set_footer(text="WWB's staff")
+        embed.set_footer(text="WWC's staff")
         embed.description = f"Привет, мой милый друг!\n{описание}"
         embed.title = f"An'ke {делает} {заголовок}!"
         await interaction.send(content="сообщение отредактировано",ephemeral=True)

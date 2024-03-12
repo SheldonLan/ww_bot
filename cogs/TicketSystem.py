@@ -5,90 +5,52 @@ from nextcord.ui import View, Button, Select
 from nextcord import SelectMenu, SelectOption
 
 import conts
+from main import bot
 
 
 class TicketSystem(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def create_ticket_channel(self, user):
-        guild = self.bot.get_guild(conts.GUILD)
-        ticket_category = nextcord.utils.get(guild.categories, name='tickets')
-        staff_role = nextcord.utils.get(guild.roles, name='staff')
+    class Ticket(nextcord.ui.Modal):
+        def __init__(self):
+            super().__init__(
+                "Жалоба на пользователя",
+                timeout=5 * 60,  # 5 minutes
+            )
 
-        if ticket_category and staff_role:
-            overwrites = {
-                role: nextcord.PermissionOverwrite(read_messages=False) for role in guild.roles
-            }
+            self.name = nextcord.ui.TextInput(
+                label="id_нарушителя",
+                min_length=2,
+                placeholder="Укажи discord id НАРУШИТЕЛЯ",
+                max_length=20,
+            )
+            self.add_item(self.name)
 
-            overwrites[user] = nextcord.PermissionOverwrite(read_messages=True, send_messages=True, attach_files=True)
-            overwrites[staff_role] = nextcord.PermissionOverwrite(read_messages=True, send_messages=True,
-                                                                  attach_files=True)
+            self.description = nextcord.ui.TextInput(
+                label="Текст",
+                style=nextcord.TextInputStyle.paragraph,
+                placeholder="Опиши суть нарушения",
+                required=True,
+                max_length=1800,
+            )
+            self.add_item(self.description)
 
-            ticket_channel_name = f"ticket_{user.display_name}"
-            ticket_channel = await ticket_category.create_text_channel(name=ticket_channel_name, overwrites=overwrites)
-            return ticket_channel
-        else:
-            print("Ticket category or staff role not found.")
-            return None
 
-    @Cog.listener()
-    async def on_ready(self):
-        channel = self.bot.get_channel(conts.CHANNEL_TICKET)
-        await channel.purge()
-        embed = Embed(
-            title="Здесь ты можешь оставить жалобу на другого пользователя.",
-            description="Чтобы создать обращение, нажми на кнопку под сообщением.\nНапоминаю о пунктах 5.1-5.8 Правил ( <#1211519023456587777> )",
-            colour=Colour.random()
-        )
-        view = View()
-        view.timeout = None
-        button_create = Button(style=ButtonStyle.green, label='Создать тикет', custom_id='create_ticket')
+        async def callback(self, interaction: nextcord.Interaction) -> None:
+            channel = bot.get_channel(1216997868297125939)
+            embed = nextcord.Embed(title=f"{self.name.value}",
+                                   description=f"{self.description.value}",
+                                   colour=nextcord.Colour.random())
+            embed.set_author(name=f"Автор: {interaction.user.display_name}",
+                             icon_url=interaction.user.display_avatar.url)
+            embed.set_footer(text=f"uid: {interaction.user.id}")
+            await channel.send(embed=embed)
 
-        async def function_on_click(interaction: nextcord.Interaction):
-            ticket_channel = await self.create_ticket_channel(interaction.user)
-            if ticket_channel:
-                view = View()
-                view.timeout = None
-                delete_button = Button(style=ButtonStyle.red, label="Удалить тикет", custom_id="delete_ticket")
-                punish_button = Button(style=ButtonStyle.red, label="Наказать", custom_id="punish_ticket")
-
-                async def delete_ticket_callback(interaction: nextcord.Interaction):
-                    await interaction.channel.delete()
-
-                async def punish_callback(interaction: nextcord.Interaction):
-                    if interaction.user.get_role(conts.ROLE_STAFF):
-                        punish_menu = Select()
-                        options = [SelectOption(label="Забанить", description="Заблокировать на сервере", value=1),
-                                   SelectOption(label="Отправить в тайм-аут", description="Отправить в мут, в том числе голосовой", value=2),
-                                   SelectOption(label="Предупредить", description="Отправить сообщение в личку пользователю", value=3)]
-                        punish_menu.options = options
-                        punish_view = View()
-                        punish_view.timeout = None
-                        punish_view.add_item(punish_menu)
-                        await interaction.send("Ничего не работает. Пользуйтесь `/ban` `/timeout` `/личка`", ephemeral=True, view=punish_view)
-                    else:
-                        await interaction.send(
-                            f"Ай-яй-яй, ты не {interaction.guild.get_role(conts.ROLE_STAFF).mention}", ephemeral=True)
-
-                delete_button.callback = delete_ticket_callback
-                punish_button.callback = punish_callback
-                view.add_item(delete_button)
-                view.add_item(punish_button)
-                await ticket_channel.send(f"{interaction.user.mention}, твой тикет создан!\n"
-                                          f"Заполните обращение по форме:```css\n"
-                                          f"1. Суть обращения\n"
-                                          f"2. Доказательства нарушения\n"
-                                          f"3. Дата нарушения (если требуется).```", view=view)
-            else:
-                await interaction.response.send_message("Произошла ошибка при создании тикета.", ephemeral=True)
-
-        button_create.callback = function_on_click
-        view.timeout = None
-
-        view.add_item(button_create)
-        await channel.send(embed=embed, view=view)
-
+        @bot.slash_command(description="Здесь можно оставить жалобу на пользователя", guild_ids=[conts.GUILD])
+        async def жалоба(interaction: nextcord.Interaction):
+            modal = TicketSystem.Ticket()
+            await interaction.response.send_modal(modal)
 
 def setup(bot):
     bot.add_cog(TicketSystem(bot))
